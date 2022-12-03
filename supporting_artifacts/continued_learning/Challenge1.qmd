@@ -1,0 +1,62 @@
+---
+title: "Challenge 1"
+author: "Antonio da Silva"
+format: 
+  html:
+    self-contained: true
+editor: visual
+execute: 
+  echo: true
+---
+
+## Quarto
+
+Quarto enables you to weave together content and executable code into a finished document. To learn more about Quarto see <https://quarto.org>.
+
+## Running Code
+
+When you click the **Render** button a document will be generated that includes both content and the output of embedded code. You can embed code like this:
+
+# Cars Dataset
+
+```{r}
+summary(cars)
+```
+
+*This dataset contains information about [Speed and Stopping Distances of Cars]{.underline}. The data was collected in [the 1920s]{.underline}.*
+
+*It has [6]{.underline} rows and [2]{.underline} variables.*
+
+# Vapor Pressure of Mercury as a Function of Temperature
+
+```{r}
+#| echo: true
+plot(pressure, xlab = "Temperature (deg C)",
+     ylab = "Pressure (mm of Hg)",
+     main = "pressure data: Vapor Pressure of Mercury")
+fig.align = "center"
+```
+
+The `echo: false` option disables the printing of code (only output is displayed).
+
+## Plot for cars' speed vs stopping distance and Histogram for cars' stopping distance
+
+```{r}
+par(mfrow=c(1,2))
+plot(cars,
+     xlab ="speed (mph)",
+     ylab = "stopping distance(ft)")
+dist <- cars$dist
+hist(dist, xlab = "Stopping distance (ft)")
+
+```
+
+## Modification to Graph
+
+```{r}
+plot(cars, xlab = "Speed (mph)", ylab = "Stopping distance (ft)",
+     las = 1)
+
+lines(predict(lm(cars)),col='green')
+
+```

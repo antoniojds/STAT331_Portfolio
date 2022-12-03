@@ -1,0 +1,96 @@
+---
+title: "Challenge 7: Exploring Fish Condition Indices"
+author: "Antonio da Silva"
+format: 
+  html:
+    self-contained: true
+editor: visual
+execute: 
+  echo: true
+  message: false
+  warning: false
+  error: true
+---
+
+```{r}
+library(tidyverse)
+library(here)
+library(dplyr)
+
+BlackfootFish <- read_csv(here::here("Week 7", "Lab7", "BlackfootFish.csv"))
+
+```
+
+1\.
+
+```{r}
+BlackfootFish <- BlackfootFish |> 
+  drop_na()
+
+mean(BlackfootFish$length) 
+ 
+
+mean(BlackfootFish$weight)
+
+```
+
+2\.
+
+Typical Size: Adult trout average **10 to 20 inches** in length and weigh **4 to 8 pounds**.
+
+Typical Size: Adult trout average **250 to 500 mm** in length and weigh **1,800 to 3,600 grams**.
+
+259.26 mm makes sense as an average trout size because that equates 10.2 inches.
+
+246.22 decagrams is a good average for a trout because that is 2460 grams.
+
+```{r}
+BlackfootFish <- BlackfootFish |> 
+  mutate(weight = weight * 10)
+
+#changing to grams
+```
+
+3\.
+
+```{r}
+
+condition_index <- function(data, weight, length) {
+  stopifnot(is.data.frame(data),
+            is.numeric(length), 
+            length(length) > 1,
+            is.numeric(weight), 
+            length(weight) > 1)
+
+  
+  ((weight / (length ^ 3)) *100)
+  
+}
+
+FinalBlackfootFish <- BlackfootFish  |>
+   mutate(weight = as.integer(weight),
+          length = as.integer(length),
+          weight = case_when(
+            weight < 1000 ~ NA_integer_,
+            weight > 9000 ~ NA_integer_,
+            TRUE ~ weight), 
+          length = case_when(
+            length < 20 ~ NA_integer_,
+            length > 800 ~ NA_integer_,
+            TRUE ~ length),
+    condition_index = condition_index(BlackfootFish, length, weight)) |> 
+   drop_na()
+ 
+ 
+ # reference for NA_integer_ : https://stackoverflow.com/questions/44893933/avoiding-type-conflicts-with-dplyrcase-when
+```
+
+4\.
+
+```{r}
+FinalBlackfootFish |> 
+  ggplot(mapping = aes( y = condition_index, x = year, color = species)) + 
+  geom_count() +
+  labs(title = 'Condition Index per Year', x = "", y = "") 
+
+```
