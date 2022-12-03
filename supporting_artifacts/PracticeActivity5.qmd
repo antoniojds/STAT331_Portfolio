@@ -1,0 +1,76 @@
+---
+title: "Practice Activity 5"
+author: "Antonio da Silva"
+format: 
+  html:
+    self-contained: true
+editor: visual
+execute: 
+  echo: true
+  message: false
+  warning: false
+---
+
+One of the most famous mysteries in California history is the identity of the so-called "Zodiac Killer", who murdered 7 people in Northern California between 1968 and 1969.
+
+A new murder was committed last year in California, suspected to be the work of a new Zodiac Killer on the loose. Fortunately, a camera was planted at the location where the body was found. The FBI has provided you with a list of people who entered the building last year, and what date and time they entered, in Pacific Standard Time (PST). This dataset is available [here](https://app.box.com/s/3a37j0bvfhk9b5m48w1cqqlv3evp5dug), named `suspects_times.csv`
+
+```{r}
+library(tidyverse)
+library(here)
+library(dplyr)
+library(lubridate)
+```
+
+```{r}
+suspect_times <- read_csv(here::here("Week 5", "suspect_times.csv"))
+suspect_times
+```
+
+Unfortunately, the date and time of the murder is not known. You have been hired to crack the case. Use the clues below to discover the murderer's identity.
+
+1.  Based on the sunburn patterns on the body, the murder was not committed in the morning.
+
+2.  The room where the murder was committed is closed Tuesdays and Thursdays, so the murder did not happen on those days.
+
+3.  It is believed that the murder was committed within 5 weeks (35 days) of Thanksgiving, 2018.
+
+4.  It was discovered that just before being murdered, the victim tried to send a text to their sister in Iceland, saying "Goodnight over there!"
+
+5.  The Killer left behind a birthday card at the scene of the crime. The date is smudged, but the number of the day is shown to be 22. It is thought that perhaps this murder took place less than two days after the Killer's birthday.
+
+6.  The Killer is amused by our efforts, and he has sent us a cryptic clue:
+
+> "The number of minutes between Jan 1, 1970 at midnight and the time I arrived on the scene is divisible by 10."
+
+Who is the killer? (Only one name should remain.)
+
+```{r}
+suspect_times <- suspect_times |> 
+  mutate(Time.Spotted = force_tz(Time.Spotted, 
+                                 tzone = "America/Los_Angeles"), 
+         day = wday(Time.Spotted)) |> 
+  filter(am(Time.Spotted) == TRUE,
+        day != 2,
+        day !=4
+        )
+
+thanksgiving = ymd("2018-11-22", tz = "America/Los_Angeles")
+thanksgiving_plus = thanksgiving + ddays(35)
+thanksgiving_minus = thanksgiving - ddays(35)
+
+ 
+suspect_times1 <- suspect_times |> 
+  filter(Time.Spotted <= thanksgiving_plus,
+         Time.Spotted >= thanksgiving_minus)
+
+
+suspect_times2 <- suspect_times1 |> 
+  mutate(iceland_time = with_tz(Time.Spotted, "Etc/GMT+1"))
+         
+suspect_times3 <- suspect_times2 |> 
+  filter(pm(iceland_time) == TRUE)
+suspect_times3 
+
+
+```
