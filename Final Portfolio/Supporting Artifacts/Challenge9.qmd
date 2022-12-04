@@ -1,0 +1,67 @@
+---
+title: "Challenge 9: Creating Nice Tables"
+author: "Antonio da Silva"
+format: 
+  html:
+    self-contained: true
+editor: visual
+execute: 
+  echo: true
+  message: false
+  warning: false
+  error: true
+---
+
+```{r}
+library(tidyverse)
+library(here)
+library(dplyr)
+library(knitr)
+library(kableExtra)
+library(DT)
+
+
+StateNames_A <- read_csv(here::here("Week 9", "Lab9", "StateNames_A.csv"))
+
+```
+
+1\.
+
+```{r}
+
+percent <- function(x){
+    x/sum(x)
+  
+}
+  
+Table_Name <- StateNames_A |> 
+  rename("Sex" = Gender) |> 
+  filter(Sex == "M",
+         Name %in% c('Alan', 'Allen', 'Allan'),
+         State %in% c('PA', 'CA'),
+         Year == 2000) |> 
+  select(Name, State, Count) |> 
+  pivot_wider(names_from = Name, values_from = Count) |> 
+  mutate(across(.cols = Alan:Allan,.fns =  percent))
+
+
+```
+
+2.  Kable Table Adjustment
+
+```{r}
+kable(Table_Name, align = 'c', booktabs = TRUE) %>%
+  row_spec(1, bold = TRUE, italic = TRUE) %>% 
+  row_spec(1:2, color = 'black', background = 'red') %>%
+  row_spec(2, underline = TRUE, monospace = TRUE) %>% 
+  column_spec(2, strikeout = TRUE)
+```
+
+3.  DT Interactive Table
+
+```{r}
+datatable(Table_Name, 
+          filter = 'top',
+          options = list(paging = FALSE)) |> 
+  formatPercentage(c('Allen', 'Alan','Allan'), digits = 2)
+```

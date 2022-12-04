@@ -1,0 +1,194 @@
+---
+title: "Lab 7: Functions and Fish"
+author: "Antonio da Silva"
+format: 
+  html:
+    self-contained: true
+editor: visual
+execute: 
+  echo: true
+  message: false
+  warning: false
+  error: true
+---
+
+```{r}
+library(tidyverse)
+library(here)
+library(dplyr)
+
+BlackfootFish <- read_csv(here::here("Week 7", "Lab7", "BlackfootFish.csv"))
+
+```
+
+## **2 Part One: Summaries and Plots (Midterm Review)**
+
+**Task 1 -- Summarizing Missing Data**
+
+The measurements of each fish captured were taken by a Biologist on a raft. This lack of "laboratory setting" opens the door to the possibility of measurement errors.
+
+-   How many observations have missing values?
+
+-   What variable(s) have missing values present?
+
+**Output both pieces of information in *one* table!**
+
+```{r}
+BlackfootFish |> 
+  summarize((across(
+    .cols = trip:species, 
+    .fns = ~sum(is.na(.)))))
+
+
+```
+
+### **Task 2 -- Visualizing Missing Data**
+
+Unfortunately, these missing values are not for only one `year`, `trip`, or `section` of river.
+
+Create a thoughtful visualization exploring the frequency of missing values across the different years, sections, and trips.
+
+```{r}
+BlackfootFish |> 
+  select(year, trip, section, weight) |> 
+  mutate(weight = is.na(weight),
+         trip = as.factor(trip)) |> 
+  group_by(year, section, trip) |> 
+  summarize(weight = sum(weight))|> 
+  ggplot(mapping = aes(x = trip, y = weight, fill = section)) +
+  geom_col() +
+  labs(x = "Trip Number", y = "Missing Weight Amount") +
+  facet_grid(~year)
+```
+
+## **3 Part Two: Adjusting the Data (Function Writing)**
+
+![](images/paste-279C373C.png)
+
+```{r}
+BlackfootFish |> 
+  mutate(length = (length - min(length, na.rm = TRUE)) / 
+           (max(length, na.rm = TRUE) - min(length)), 
+         weight = (weight - min(weight, na.rm = TRUE)) / 
+           (max(weight, na.rm = TRUE) - min(length, na.rm = TRUE))
+         )
+
+```
+
+This process of duplicating an action multiple times makes it difficult to understand the intent of the process. Additionally, it makes it very difficult to spot the mistakes. *Did you spot the mistake in the weight conversion?*
+
+Often you will find yourself in the position of needing to find a function that performs a specific task, but you do not know of a function or a library that would help you. You could spend time Googling for a solution, but in the amount of time it takes you to find something you could have already written your own function!
+
+### **Task 1 -- Writing a Function**
+
+Let's transform the repeated process above into a `rescale_01()` function.
+
+-   The function should take a single vector as its input.
+
+-   The function should return the rescaled vector.
+
+*Think about the "efficiency" of your function. Are you calling the **same** function multiple times?*
+
+```{r}
+
+rescale_01 <- function(input){
+  
+  z <- (input - min(input, na.rm = TRUE)) / (max(input, na.rm = TRUE) - min(input, na.rm = TRUE))
+
+      return(z)
+}
+
+test <- c(1:25, NA)
+
+rescale_01(test)
+```
+
+### **Task 2 -- Adding Stops**
+
+Now, let's incorporate some checks into your function! Modify your previous code to create the following checks:
+
+-   the function should stop if the input vector is not numeric
+
+-   the function should stop if the length of the vector is not greater than 1
+
+*No need to write code here, simply add these stops to your code from Task 1!*
+
+```{r}
+rescale_01 <- function(input) {
+  stopifnot(is.numeric(input), 
+            length(input) > 1)
+  
+  rng <- range(input, na.rm = TRUE, finite = TRUE)
+  (input - rng[1]) / (rng[2] - rng[1])
+}
+x <- c(1:25, NA)
+rescale_01(x)
+```
+
+### **Task 3 - Performing a Simple Test**
+
+First, test your function on the simple vector below. Verify that the maximum of your rescaled vector is 1 and the minimum is 0!
+
+```{r}
+x <- c(1:25, NA)
+rescale_01(x)
+```
+
+### **Task 4 - Performing a More Difficult Test**
+
+Next, let's test the function on the `length` column of the `BlackfootFish` dataset.
+
+Make plots of the original values of `length` and the rescaled values of `length`. Output your plots side-by-side, so the reader can confirm the only aspect that has changed is the scale.
+
+```{r}
+
+library(gridExtra)
+
+length_plot <- BlackfootFish |> 
+  mutate(new_length = rescale_01(length)) |> 
+  ggplot(length_plot, mapping = aes(x = length, y = weight)) +
+  geom_point() +
+  labs() 
+
+newlength_plot <-  BlackfootFish |> 
+  mutate(new_length = rescale_01(length)) |>
+  ggplot(length_plot, mapping = aes(x = new_length, y = weight)) +
+  geom_point() +
+  labs(x = "rescale_01(length)") 
+
+grid.arrange(length_plot, newlength_plot, nrow = 1)
+```
+
+### **Task 5 -- Incorporating Variables**
+
+Suppose you would like for your `rescale()` function to perform operations on a variable within a dataset. Ideally, your function would take a dataframe and a variable name as inputs and return a dataframe where the variable has been rescaled.
+
+Create a `rescale_column()` that accepts two arguments, (1) a dataframe, and (2) the name(s) of the variable(s) to be rescaled. The body of the function should call the original `rescale_01()` function you wrote previously.
+
+*Hint:* If you are struggling with this task, I would recommend reading the [Data frame functions](https://r4ds.hadley.nz/functions.html#data-frame-functions) section from the new R for Data Science book.
+
+```{r}
+rescale_column <- function(data, variable) {
+  stopifnot(is.data.frame(data))
+  
+   data %>%
+    mutate( 
+      across(.cols = {{ variable }}, .fns = rescale_01
+      )
+    )
+  
+}
+
+```
+
+### **Task 6 -- Another Function Test**
+
+Alright, now let's put your `rescale_column()` function to work! Use your `rescale_column()` function to rescale **both** the `length` and `weight` columns.
+
+**I expect that you carry out this process by calling the `rescale()` function *one* time!**
+
+*Note:* I advise against using functions like `mutate_at()`, which have been superseded.
+
+```{r}
+rescale_column(BlackfootFish, length:weight)
+```

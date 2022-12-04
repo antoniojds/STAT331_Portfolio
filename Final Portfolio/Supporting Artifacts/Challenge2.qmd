@@ -1,0 +1,40 @@
+---
+title: "Challenge 2"
+author: "Antonio da Silva"
+format: 
+  html:
+    self-contained: true
+editor: visual
+execute: 
+  echo: true
+  message: false
+  warning: false
+---
+
+```{r setup}
+library(tidyverse)
+library(here)
+```
+
+**1.**
+
+```{r data}
+surveys <- read_csv(here::here("Week 2", "Lab 2", "surveys.csv"))
+
+
+```
+
+# Challenge
+
+```{r}
+cdPalette_grey <- c("#990099", "#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7")
+
+ggplot(data = surveys, mapping = aes(y = species, x = weight, 
+                       color = fct_reorder2(genus, weight, species))) +
+  geom_point(alpha =.05) +
+  geom_boxplot(outlier.shape = NA) +
+  scale_color_manual(values = cdPalette_grey) +
+  labs(title = "Species Type Boxplot") +
+  labs(y = "Species Type", x = "Weight", color = 'genus')
+
+```

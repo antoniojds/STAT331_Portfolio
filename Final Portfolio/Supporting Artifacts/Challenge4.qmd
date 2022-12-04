@@ -1,0 +1,56 @@
+---
+title: "Challenge 4: House Prices and Avocado Toast"
+author: "Antonio da Silva"
+format: 
+  html:
+    self-contained: true
+editor: visual
+execute: 
+  echo: true
+  message: false
+  warning: false
+  error: true
+---
+
+A joke in the media is that Millennials can't afford houses, because they spend all their money buying avocado toast. Let's use this dataset to address that claim.
+
+Find or make a dataset with house prices for these four California regions. Join this dataset with your California avocado dataset. Use your new joined dataset to make an argument about the relationship between house prices and avocado prices/sales. Support your argument with a plot.
+
+```{r}
+library(tidyverse)
+library(here)
+library(dplyr)
+```
+
+1
+
+```{r}
+avocado <- read_csv(here::here("Week 4", "Lab4", "avocado.csv"))
+housing <- read_csv(here::here("Week 4", "Lab4", "housing.csv"))
+housing <- (drop_na(housing))
+```
+
+2
+
+```{r}
+cali_avocado <- avocado |> 
+  filter(region %in% c('LosAngeles', 'SanDiego', 'Sacramento', 'SanFrancisco'))
+
+```
+
+3
+
+```{r}
+house_avo <- cali_avocado |> 
+  full_join(housing, by = "region")
+```
+
+4
+
+```{r}
+ggplot(data = house_avo, mapping = aes(x = AveragePrice, y = median_house_value, color = region)) +
+  geom_boxplot() +
+  labs(x = "Average Price for Avocados", y = "Median House value")
+
+
+```

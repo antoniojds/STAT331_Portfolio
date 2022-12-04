@@ -1,0 +1,67 @@
+---
+title: "Challenge 3"
+author: "Antonio da Silva"
+format: 
+  html:
+    self-contained: true
+editor: visual
+execute: 
+  echo: true
+  message: false
+  warning: false
+  error: true
+---
+
+```{r}
+library(tidyverse)
+library(here)
+library(dplyr)
+```
+
+## Summary
+
+```{r}
+hiphop <- read_csv(here::here("Week 3", "Lab 3", "hiphop.csv"))
+
+```
+
+```{r}
+hiphop1 <- hiphop |>
+  mutate(
+    age = as.factor(age),
+    ethnic = if_else(ethnic == "white", "white", "nonwhite")
+)
+
+```
+
+# CHALLENGE
+
+1\.
+
+```{r}
+hiphop1 |> 
+  select(sex, intl : unclassifiable) |> 
+  group_by(sex) |> 
+  summarize(across(intl : unclassifiable, mean)) |> 
+  pivot_longer(cols = -sex) |> 
+  pivot_wider(names_from = sex, values_from = value) |> 
+  mutate(Difference = abs(Female - Male))
+```
+
+2\.
+
+```{r}
+hiphop1 |> 
+  select(ethnic, intl : unclassifiable) |> 
+  group_by(ethnic) |> 
+  summarize(across(intl : unclassifiable, mean)) |> 
+  pivot_longer(cols = -ethnic) |> 
+  pivot_wider(names_from = ethnic, values_from = value) |> 
+  mutate(Difference = abs(nonwhite - white))
+```
+
+# **Study Design Critique**
+
+**Based on the design of this study and its context (African American English), what are at least two concerns you have?**
+
+My first concern is that the popular culture questions do not have any substantial proof that it is showing a valid response or answer. This part of the data can easily be skewed by bias. Another concern is that this dataset does not include African American people which purposely exclude a group of people which shows that the dataset does not demonstrate a real life scenario.\
